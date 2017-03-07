@@ -1,0 +1,177 @@
+{% extends 'shark/basic.html' %}
+{% block sidebar-menu %}
+    <ul class="sidebar-menu">
+        <li class="header">HEADER</li>
+        <!-- Optionally, you can add icons to the links -->
+        <li class="active"><a href="#"><i class="fa  fa-dashboard "></i> <span>Dashboard</span></a></li>
+        <li><a href="#"><i class="fa fa-link"></i> <span>Another Link</span></a></li>
+        <li class="treeview">
+            <a href="#"><i class="fa fa-link"></i> <span>Multilevel</span> <i
+                    class="fa fa-angle-left pull-right"></i></a>
+            <ul class="treeview-menu">
+                <li><a href="#">Link in level 2</a></li>
+                <li><a href="#">Link in level 2</a></li>
+            </ul>
+        </li>
+    </ul>
+{% endblock %}
+{% block content %}
+    <div id="status" style="width: 450px;height:300px;float: left"></div>
+    <div id="idc" style="width: 450px;height:300px;float: right"></div>
+    {#    <div id="container-online" style="width: 300px; height: 300px; margin: 10px 10px;float: left"></div>#}
+    {#    <div id="container-os" style="width: 300px; height: 300px; margin: 10px 10px;float: left"></div>#}
+    <!-- 显示在线机器 -->
+    <table id="tb" class="table table-bordered table-hover">
+        <thead>
+        <tr>
+            <th style="width: 200px">主机名</th>
+            <th style="width: 140px">IP</th>
+            <th style="width: 80px">OS</th>
+            <th style="width: 80px">Mem</th>
+            <th style="width: 80px">CPU</th>
+            <th style="width: 80px">Disk</th>
+            <th style="width: 80px">Vendor id</th>
+            <th style="width: 80px">Product</th>
+            <th style="width: 80px">Sn</th>
+            <th style="width: 80px">Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in host %}
+            <tr>
+                <td>{{ item.hostname }}</td>
+                <td>{{ item.ip }}</td>
+                <td>{{ item.os }}</td>
+                <td>{{ item.memory }}</td>
+                <td>{{ item.cpu }}</td>
+                <td>{{ item.disk }}</td>
+                <td>{{ item.vendor_id }}</td>
+                <td>{{ item.product }}</td>
+                <td>{{ item.sn }}</td>
+                <td>{{ item.status }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+
+
+{% endblock %}
+{% block js %}
+    <script src="/statics/js/echarts.js"></script>
+    <script>
+        $(document).ready(function () {
+            var myChart = echarts.init(document.getElementById('status'));
+
+            // 指定图表的配置项和数据
+            option = {
+                tooltip: {
+                    trigger: 'item',
+                    formatter: "{a} <br/>{b}: {c} ({d}%)"
+                },
+                legend: {
+                    orient: 'vertical',
+                    x: 'left',
+                    data: ['在线', '离线', '故障', '未知', '备用']
+                },
+                series: [
+                    {
+                        name: '开关机比例',
+                        type: 'pie',
+                        radius: ['40%', '55%'],
+
+                        data: [
+                            {value: {{ dic_count.on_count }}, name: '在线', selected: true},
+                            {value: {{ dic_count.off_count }}, name: '离线'},
+                            {value: {{ dic_count.fail_count }}, name: '故障'},
+                            {value: {{ dic_count.unKnow_count }}, name: '未知'},
+                            {value: {{ dic_count.bak_count }}, name: '备用'}
+                        ]
+                    }
+                ]
+            };
+            myChart.setOption(option);
+
+        });
+        $(document).ready(function () {
+            var myChart = echarts.init(document.getElementById('idc'));
+
+            // 指定图表的配置项和数据
+
+            option = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {            // 坐标轴指示器，坐标轴触发有效
+                        type: 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+                    }
+                },
+                legend: {
+                    data: ['在线', '离线', '故障', '未知', '备用']
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: [
+                    {
+                        type: 'category',
+                        data: [
+                            {% for i in idc %}
+                                '{{ i.name }}',
+                            {% endfor %}
+                        ]
+                    }
+                ],
+                yAxis: [
+                    {
+                        type: 'value'
+                    }
+                ],
+                series: [
+                    {
+                        name: '在线',
+                        type: 'bar',
+                        data: [{{ dic_count.on_count }}]
+                    },
+                    {
+                        name: '备用',
+                        type: 'bar',
+                        data: [320, 332, 301]
+                    },
+                    {
+                        name: '故障',
+                        type: 'bar',
+                        data: [320, 332, 301]
+                    },
+                    {
+                        name: '未知',
+                        type: 'bar',
+                        data: [320, 332, 301]
+                    },
+
+                    {
+                        name: '离线',
+                        type: 'bar',
+                        data: [862, 1018, 964],
+                        markLine: {
+                            lineStyle: {
+                                normal: {
+                                    type: 'dashed'
+                                }
+                            },
+                            data: [
+                                [{type: 'min'}, {type: 'max'}]
+                            ]
+                        }
+                    }
+
+
+                ]
+            };
+            myChart.setOption(option);
+
+        });
+    </script>
+{% endblock %}
